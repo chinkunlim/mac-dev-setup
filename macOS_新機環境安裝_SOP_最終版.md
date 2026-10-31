@@ -1,6 +1,6 @@
 # macOS 新機開發與本地 AI 環境安裝 SOP（Apple Silicon 最終版）
 
-本手冊適用於全新 Apple Silicon (`arm64`) Mac，涵蓋 Homebrew、GitHub CLI、Python (`uv`)、Node.js (`nvm` + `pnpm`)、Antigravity CLI (`agy`)、Ollama、Open WebUI（含 `launchd` 開機常駐）、OpenCode 與 Open Design 桌面版的標準安裝與安全設定。
+本手冊適用於全新 Apple Silicon (`arm64`) Mac，涵蓋 Homebrew、GitHub CLI、Python (`uv`)、Antigravity CLI (`agy`)、代碼與知識圖譜工具 (`graphify`)、Node.js (`nvm` + `pnpm`)、Ollama、Open WebUI（含 `launchd` 開機常駐）、OpenCode 與 Open Design 桌面版的標準安裝與安全設定。
 
 ---
 
@@ -105,7 +105,7 @@ gh auth setup-git
 設定全域 `.gitignore_global`，防止誤將 `.env` 或私鑰提交至版本庫：
 
 ```bash
-printf '%s\n' '.env' '.env.*' '!.env.example' '.DS_Store' '*.pem' '*.key' 'node_modules' > ~/.gitignore_global
+printf '%s\n' '.env' '.env.*' '!.env.example' '.DS_Store' '*.pem' '*.key' 'node_modules' 'graphify-out/' > ~/.gitignore_global
 git config --global core.excludesfile ~/.gitignore_global
 ```
 
@@ -164,6 +164,44 @@ sed -i '' "s|/Users/$(id -un)|\$HOME|g" ~/.zprofile
 which -a agy
 cat -n ~/.zprofile
 ```
+
+### 3.3 安裝代碼與知識圖譜分析工具（`graphify`）
+
+`graphify` 可將任何專案的程式碼、文件、架構圖轉換為知識圖譜（Knowledge Graph），支援社群劃分、God Nodes 核心抽象識別與 GraphRAG 檢索。
+
+使用 `uv tool` 進行全域獨立隔離安裝（自動配置獨立虛擬環境，不污染系統與專案 Python，並於 `~/.local/bin` 提供 CLI）：
+
+```bash
+uv tool install graphifyy
+graphify install --platform antigravity
+graphify install --platform claude
+```
+
+> [!TIP]
+> - `uv tool install graphifyy` 會安裝 `graphify` 與 `graphify-mcp` 執行檔。
+> - `graphify install --platform antigravity` 會自動將 `/graphify` skill 註冊至全域 `~/.gemini/config/skills/graphify/`，使得**所有在 Antigravity 中建立或開啟的新專案資料夾皆可直接呼叫 `/graphify`**。
+> - 同理，`--platform claude` 會註冊至全域 `~/.claude/skills/graphify/`。
+
+**驗證**：
+
+```bash
+which -a graphify
+graphify --version
+```
+
+**在任何新資料夾 / 專案中使用**：
+
+```bash
+cd 你的新專案資料夾
+graphify .
+```
+
+產出檔案皆集中於 `graphify-out/`（已由全域 `.gitignore_global` 忽略，不進版本庫）：
+- `graphify-out/graph.html`：互動式架構圖譜視覺化（在瀏覽器中直接開啟，無需本機 server）。
+- `graphify-out/GRAPH_REPORT.md`：模組依賴與架構分析報告。
+- `graphify-out/graph.json`：GraphRAG 與圖譜資料。
+- 終端機查詢：`graphify query "問題"`。
+- AI 對話中使用：在 Antigravity 或 Claude Code 對話框輸入 `/graphify` 即可調用。
 
 ---
 
@@ -532,6 +570,8 @@ find ~/.cache/uv -user root
 ```bash
 type -a od
 which -a agy
+which -a graphify
+graphify --version
 grep -c 'typeset -U' ~/.zshrc
 grep -c 'brew shellenv' ~/.zprofile
 which -a pnpm
@@ -555,6 +595,8 @@ curl -s http://127.0.0.1:11434/api/embed -d '{"model":"bge-m3","input":"你好"}
 | --- | --- |
 | `type -a od` | 只有 `/usr/bin/od` |
 | `which -a agy` | 只有 `~/.local/bin/agy` |
+| `which -a graphify` | 只有 `~/.local/bin/graphify` |
+| `graphify --version` | 顯示版本號（例如 `graphify 0.9.x`） |
 | `grep -c 'typeset -U' ~/.zshrc` | `1` |
 | `grep -c 'brew shellenv' ~/.zprofile` | `1` |
 | `which -a pnpm` | 只有 nvm 那一份 |

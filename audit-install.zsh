@@ -51,7 +51,7 @@ chk_cmd() {
     bad "$c 有多個不同的實體: ${paths[*]}"
   fi
 }
-for c in brew git gh uv ollama node npm pnpm corepack ffmpeg agy open-webui opencode; do chk_cmd $c; done
+for c in brew git gh uv ollama node npm pnpm corepack ffmpeg agy open-webui opencode graphify graphify-mcp; do chk_cmd $c; done
 
 od_paths=(${(f)"$(whence -ap od 2>/dev/null)"})
 [[ ${#od_paths} -eq 1 && ${od_paths[1]} == /usr/bin/od ]] && ok "od 只有 /usr/bin/od" || bad "od 路徑異常: ${od_paths[*]}"
@@ -68,6 +68,8 @@ where_is pnpm "^$HOME/.nvm/versions/node/"
 where_is open-webui "^$HOME/.local/bin/open-webui$"
 where_is agy "^$HOME/.local/bin/agy$"
 where_is opencode '^/opt/homebrew/bin/opencode$'
+where_is graphify "^$HOME/.local/bin/graphify$"
+where_is graphify-mcp "^$HOME/.local/bin/graphify-mcp$"
 
 # ---------------------------------------------------------------
 sec "2. PATH 健康度"
@@ -386,6 +388,13 @@ info "$(uv --version 2>&1)"
 uv python find 3.11 >/dev/null 2>&1 && ok "Python 3.11 可用" || bad "找不到 uv 管理的 Python 3.11"
 info "$(uv python list --only-installed 2>&1)"
 info "$(uv tool list 2>&1)"
+if [ -x ~/.local/bin/graphify ]; then
+  ok "graphify 由 ~/.local/bin 提供 ($(graphify --version 2>&1 | head -1))"
+  [ -f ~/.gemini/config/skills/graphify/SKILL.md ] && ok "graphify skill 已註冊至 Antigravity (~/.gemini/config/skills/graphify)" || warn "graphify skill 未註冊至 Antigravity"
+  [ -f ~/.claude/skills/graphify/SKILL.md ] && ok "graphify skill 已註冊至 Claude (~/.claude/skills/graphify)" || warn "graphify skill 未註冊至 Claude"
+else
+  warn "找不到 graphify（尚未以 uv tool install graphifyy 安裝）"
+fi
 r=$(find ~/.cache/uv -user root 2>/dev/null | head -5)
 [[ -z $r ]] && ok "~/.cache/uv 沒有 root 擁有的檔案" || bad "root 擁有的檔案: $r"
 
@@ -542,7 +551,7 @@ di=$(git config --global init.defaultBranch)
 gi=$(git config --global core.excludesfile)
 if [[ -n $gi && -f ${gi/#\~/$HOME} ]]; then
   ok "全域 gitignore: $gi"
-  for pat in '.env' '.DS_Store' 'node_modules' '*.pem' '*.key'; do
+  for pat in '.env' '.DS_Store' 'node_modules' '*.pem' '*.key' 'graphify-out/'; do
     grep -qxF -- $pat ${gi/#\~/$HOME} || warn "全域 gitignore 缺少 $pat"
   done
 else

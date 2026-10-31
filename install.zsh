@@ -5,7 +5,7 @@
 #   zsh install.zsh                 依序執行全部階段
 #   zsh install.zsh node webui      只執行指定階段（可重複執行，已完成的會略過）
 #
-# 階段：brew pkgs git python agy ollama node webui opendesign audit
+# 階段：brew pkgs git python agy graphify ollama node webui opendesign audit
 #
 # 需要從網路下載並執行腳本的地方（curl）只有三處，都會先下載到暫存檔、
 # 顯示網址與 sha256，輸入 yes 才執行：Homebrew、Antigravity CLI、nvm。
@@ -28,7 +28,7 @@ SCRIPT_DIR=${0:A:h}
 DATA_DIR="$HOME/open-webui-data"
 PLIST="$HOME/Library/LaunchAgents/com.openwebui.service.plist"
 LABEL="com.openwebui.service"
-ALL_STAGES=(brew pkgs git python agy ollama node webui opendesign audit)
+ALL_STAGES=(brew pkgs git python agy graphify ollama node webui opendesign audit)
 
 C_CYAN=$'\e[36m'; C_GREEN=$'\e[32m'; C_YELLOW=$'\e[33m'; C_RED=$'\e[31m'; C_OFF=$'\e[0m'
 step() { print -r -- ""; print -r -- "${C_CYAN}=== $* ===${C_OFF}"; }
@@ -165,7 +165,7 @@ stage_git() {
   gh auth setup-git
 
   local p
-  for p in '.env' '.env.*' '!.env.example' '.DS_Store' '*.pem' '*.key' 'node_modules'; do
+  for p in '.env' '.env.*' '!.env.example' '.DS_Store' '*.pem' '*.key' 'node_modules' 'graphify-out/'; do
     add_line "$p" ~/.gitignore_global
   done
   git config --global core.excludesfile ~/.gitignore_global
@@ -196,6 +196,23 @@ stage_agy() {
   load_env
   brew list --cask antigravity-cli >/dev/null 2>&1 && warn "同時有 Homebrew cask antigravity-cli，只保留一個"
   info "which -a agy: $(which -a agy | tr '\n' ' ')"
+}
+
+stage_graphify() {
+  step "graphify：代碼與知識圖譜工具（uv tool 安裝）"
+  command -v uv >/dev/null || die "先執行 pkgs 與 python 階段"
+  if [ -x ~/.local/bin/graphify ]; then
+    ok "graphify 已安裝: $(uv tool list 2>/dev/null | awk '/^graphifyy/{print $2}')"
+  else
+    uv tool install graphifyy || die "graphifyy 安裝失敗"
+  fi
+  load_env
+  if [ -x ~/.local/bin/graphify ]; then
+    ~/.local/bin/graphify install --platform antigravity >/dev/null 2>&1 && ok "graphify skill 已註冊至 Antigravity"
+    ~/.local/bin/graphify install --platform claude >/dev/null 2>&1 && ok "graphify skill 已註冊至 Claude"
+    ok "$(graphify --version 2>&1 | head -1)"
+  fi
+  info "which -a graphify: $(which -a graphify | tr '\n' ' ')"
 }
 
 stage_ollama() {

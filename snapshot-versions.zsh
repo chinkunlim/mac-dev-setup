@@ -27,6 +27,8 @@ cd "$OUT" || exit 1
   echo "pnpm (open-design packageManager): $(grep -o '"packageManager"[^,]*' "$OD_DIR/package.json" 2>/dev/null)"
   echo "opencode: $(opencode --version 2>&1 | head -1)"
   echo "ollama: $(ollama --version 2>&1 | head -1)"
+  echo "agy: $(agy --version 2>&1 | head -1)"
+  echo "graphify: $(graphify --version 2>&1 | head -1)"
 } > versions.txt
 
 brew list --versions > manifests/brew-versions.txt 2>&1
