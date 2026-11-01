@@ -457,6 +457,7 @@ zsh audit-install.zsh 2>&1 | tee ~/install-audit.txt
 2. **Ollama App 設定**：確認未對區網暴露服務。
 3. **Open WebUI 介面設定**：確認 Connections 與 Documents 皆使用 `127.0.0.1` 與 `bge-m3`。
 4. **Open Design 桌面版**：確認已自動偵測到 `agy`。
+5. **埠號總表**：所有本機服務的埠號都登記在同一資料夾的 [`PORTS.md`](PORTS.md)。開新專案前先查表，用掉一個埠號就更新它。
 
 ### 8.3 重開機測試
 
