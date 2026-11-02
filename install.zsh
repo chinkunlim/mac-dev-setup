@@ -196,6 +196,19 @@ stage_agy() {
   load_env
   brew list --cask antigravity-cli >/dev/null 2>&1 && warn "同時有 Homebrew cask antigravity-cli，只保留一個"
   info "which -a agy: $(which -a agy | tr '\n' ' ')"
+
+  if command -v agy >/dev/null 2>&1; then
+    if agy plugin list 2>/dev/null | grep -q 'superpowers'; then
+      ok "superpowers 外掛已安裝"
+    else
+      agy plugin install https://github.com/obra/superpowers >/dev/null 2>&1 && ok "superpowers 外掛安裝成功" || warn "superpowers 外掛安裝失敗"
+    fi
+    mkdir -p ~/.claude/skills
+    for s in ~/.gemini/config/plugins/superpowers/skills/*; do
+      [ -d "$s" ] && ln -sfn "$s" ~/.claude/skills/$(basename "$s")
+    done
+    ok "superpowers skills 已連結至 Claude"
+  fi
 }
 
 stage_graphify() {

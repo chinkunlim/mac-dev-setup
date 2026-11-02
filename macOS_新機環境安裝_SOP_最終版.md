@@ -1,6 +1,6 @@
 # macOS 新機開發與本地 AI 環境安裝 SOP（Apple Silicon 最終版）
 
-本手冊適用於全新 Apple Silicon (`arm64`) Mac，涵蓋 Homebrew、GitHub CLI、Python (`uv`)、Antigravity CLI (`agy`)、代碼與知識圖譜工具 (`graphify`)、Node.js (`nvm` + `pnpm`)、Ollama、Open WebUI（含 `launchd` 開機常駐）、OpenCode 與 Open Design 桌面版的標準安裝與安全設定。
+本手冊適用於全新 Apple Silicon (`arm64`) Mac，涵蓋 Homebrew、GitHub CLI、Python (`uv`)、Antigravity CLI (`agy`)、代碼與知識圖譜工具 (`graphify`)、AI 方法論外掛 (`superpowers`)、Node.js (`nvm` + `pnpm`)、Ollama、Open WebUI（含 `launchd` 開機常駐）、OpenCode 與 Open Design 桌面版的標準安裝與安全設定。
 
 ---
 
@@ -202,6 +202,33 @@ graphify .
 - `graphify-out/graph.json`：GraphRAG 與圖譜資料。
 - 終端機查詢：`graphify query "問題"`。
 - AI 對話中使用：在 Antigravity 或 Claude Code 對話框輸入 `/graphify` 即可調用。
+
+### 3.4 安裝 AI 開發方法論外掛（`superpowers`）
+
+`superpowers` 是專為 AI 代理人設計的工程方法論外掛，內建 15 項工程技能（包含 TDD 測試驅動開發、Brainstorming 需求深思、Subagent 驅動開發、系統化除錯 Systematic Debugging 等）。
+
+安裝為 Antigravity 全域外掛：
+
+```bash
+agy plugin install https://github.com/obra/superpowers
+```
+
+為 Claude Code 建立 Skill 符號連結（讓兩大助理皆可全域使用）：
+
+```bash
+mkdir -p ~/.claude/skills
+for s in ~/.gemini/config/plugins/superpowers/skills/*; do
+  ln -sfn "$s" ~/.claude/skills/$(basename "$s")
+done
+```
+
+**驗證**：
+
+```bash
+agy plugin list
+```
+
+（輸出應顯示 `superpowers (enabled, ...)` 與 `Components: 15 skills`。）
 
 ---
 
@@ -571,6 +598,7 @@ find ~/.cache/uv -user root
 ```bash
 type -a od
 which -a agy
+agy plugin list
 which -a graphify
 graphify --version
 grep -c 'typeset -U' ~/.zshrc
@@ -596,6 +624,7 @@ curl -s http://127.0.0.1:11434/api/embed -d '{"model":"bge-m3","input":"你好"}
 | --- | --- |
 | `type -a od` | 只有 `/usr/bin/od` |
 | `which -a agy` | 只有 `~/.local/bin/agy` |
+| `agy plugin list` | 顯示 `superpowers (enabled)` 與 15 skills |
 | `which -a graphify` | 只有 `~/.local/bin/graphify` |
 | `graphify --version` | 顯示版本號（例如 `graphify 0.9.x`） |
 | `grep -c 'typeset -U' ~/.zshrc` | `1` |

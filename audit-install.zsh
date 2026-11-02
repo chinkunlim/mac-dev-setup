@@ -132,6 +132,13 @@ elif brew list --cask 2>/dev/null | grep -qx 'antigravity-cli'; then
 else
   bad "找不到 agy（~/.local/bin/agy 不存在，也沒有 cask antigravity-cli）"
 fi
+if [ -x ~/.local/bin/agy ]; then
+  if ~/.local/bin/agy plugin list 2>/dev/null | grep -q 'superpowers'; then
+    ok "Antigravity plugin 'superpowers' 已安裝並啟用"
+  else
+    warn "Antigravity plugin 'superpowers' 未安裝（執行 agy plugin install https://github.com/obra/superpowers）"
+  fi
+fi
 out=$(brew autoremove --dry-run 2>&1); [[ -z $out ]] && ok "沒有可 autoremove 的孤兒相依" || warn "可 autoremove: $out"
 out=$(brew cleanup -n 2>&1); [[ -z $out ]] && ok "沒有可清的舊版本/快取" || warn "brew cleanup -n 預覽:"; [[ -z $out ]] || info "$out"
 info "brew 快取大小: $(du -sh "$(brew --cache)" 2>/dev/null | cut -f1)"
